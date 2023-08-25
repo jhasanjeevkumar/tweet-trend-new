@@ -15,7 +15,11 @@ pipeline {
             }
         }
         stage('verify') {
-            steps {
+            environment {
+                scannerHome = tool 'sjha01-sonar-scanner'
+            }
+            steps{
+                withSonarQubeEnv('sjha01-sonarqube-server') {
                 sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=sjha01-key_twitter-trend-new'
             }
         }
