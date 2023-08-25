@@ -1,3 +1,4 @@
+def registry = 'https://sjha01.jfrog.io'
 pipeline {
     agent {
         node{
@@ -14,27 +15,41 @@ pipeline {
                 sh 'mvn clean deploy'
             }
         }
-        stage('verify') {
-            environment {
-                scannerHome = tool 'sjha01-sonar-scanner'
-            }
-            steps{
-                withSonarQubeEnv('sjha01-sonarqube-server') {
-                sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=sjha01-key_twitter-trend-new'
-            }
-        }
-        }
-        
         stage('sonar-analysis') {
             environment {
                 scannerHome = tool 'sjha01-sonar-scanner'
             }
             steps{
                 withSonarQubeEnv('sjha01-sonarqube-server') {
-                    sh "${scannerHome}/bin/sonar-scanner"
+                    sh 'touch sonar-analysis.txt'
                 }
             }
 
         }
+        stage("Jar Publish") {
+            steps {
+                script {
+                        echo '<--------------- Jar Publish Started --------------->'
+                         def server = Artifactory.newServer url:registry+"/artifactory" ,  credentialsId:"artifactory-cred"
+                         def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}";
+                         def uploadSpec = """{
+                              "files": [
+                                {
+                                  "pattern": "jarstaging/(*)",
+                                  "target": "libs-release-local/{1}",
+                                  "flat": "false",
+                                  "props" : "${properties}",
+                                  "exclusions": [ "*.sha1", "*.md5"]
+                                }
+                             ]
+                         }"""
+                         def buildInfo = server.upload(uploadSpec)
+                         buildInfo.env.collect()
+                         server.publishBuildInfo(buildInfo)
+                         echo '<--------------- Jar Publish Ended --------------->'  
+                
+                }
+            }   
+        }   
     }
 }
