@@ -14,6 +14,12 @@ pipeline {
                 sh 'mvn clean deploy'
             }
         }
+        stage('verify') {
+            steps {
+                sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=sjha01-key_twitter-trend-new'
+            }
+        }
+        
         stage('sonar-analysis') {
             environment {
                 scannerHome = tool 'sjha01-sonar-scanner'
