@@ -29,7 +29,7 @@ pipeline {
         stage("Jar Publish") {
             steps {
                 script {
-                        echo '<--------------- Jar Publish Started --------------->'
+                        echo '<----1----------- Jar Publish Started --------------->'
                          def server = Artifactory.newServer url:registry+"/artifactory" ,  credentialsId:"artifactory-cred"
                          def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}";
                          def uploadSpec = """{
@@ -46,7 +46,7 @@ pipeline {
                          def buildInfo = server.upload(uploadSpec)
                          buildInfo.env.collect()
                          server.publishBuildInfo(buildInfo)
-                         echo '<--------------- Jar Publish Ended --------------->'  
+                         echo '<-----1---------- Jar Publish Ended --------------->'  
                 
                 }
             }   
